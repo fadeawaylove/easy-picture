@@ -1,37 +1,30 @@
-# Miscellaneous
-*.class
+# Logs
+logs
 *.log
-*.pyc
-*.swp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+dist-electron
+release
+*.local
+
+# Editor directories and files
+.vscode/.debug.env
+.idea
 .DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-/build/
-
-# Web related
-lib/generated_plugin_registrant.dart
-
-# Exceptions to above rules.
-!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+# lockfile
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
