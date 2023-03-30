@@ -10,7 +10,7 @@
 </template>
 
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 
 
@@ -37,20 +37,20 @@ defineExpose({
 </script>
 
 
-<style>
-.formDrawer {
+<style scoped>
+.form {
     width: 100%;
     height: 100%;
     position: relative;
     @apply flex flex-col;
 }
 
-.formDrawer .body {
+.form .body {
     overflow-y: auto;
 }
 
-.formDrawer .actions {
+.form .actions {
     height: 50px;
-    @apply mt-auto flex items-center;
+    @apply mt-auto flex items-center justify-center;
 }
 </style>
