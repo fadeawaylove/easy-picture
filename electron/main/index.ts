@@ -42,9 +42,10 @@ const indexHtml = join(process.env.DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
+    title: 'Easy Picture',
+    width: 800,
+    height: 600,
     icon: join(process.env.PUBLIC, 'favicon.ico'),
-    autoHideMenuBar: true,
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -54,12 +55,12 @@ async function createWindow() {
       contextIsolation: false,
     },
   })
-
   if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
     win.loadURL(url)
     // Open devTool if the app is not packaged
     win.webContents.openDevTools()
   } else {
+    win.setMenu(null)
     win.loadFile(indexHtml)
   }
 

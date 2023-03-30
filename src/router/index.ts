@@ -1,7 +1,7 @@
 
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '~/pages/Home.vue'
-import Settings from '~/pages/Settings.vue'
+import Settings from '~/pages/settings/Settings.vue'
 
 
 const routes = [

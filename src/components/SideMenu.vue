@@ -15,7 +15,7 @@
 </template>
 
 
-<script setup>
+<script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
 const router = useRouter()
@@ -35,7 +35,7 @@ const menus = [
     }
 ]
 
-const handleSelect = (e) => {
+const handleSelect = (e: string) => {
     router.push(e)
 }
 
