@@ -2,8 +2,8 @@
   "name": "easy-picture",
   "version": "2.0.0",
   "main": "dist-electron/main/index.js",
-  "description": "Really simple Electron + Vue + Vite boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "Easy-to-use image hosting software.",
+  "author": "呆瓜 <1032939141@qq.com>",
   "license": "MIT",
   "private": true,
   "keywords": [
@@ -31,7 +31,14 @@
     "vite": "^4.1.4",
     "vite-plugin-electron": "^0.11.1",
     "vite-plugin-electron-renderer": "^0.13.12",
+    "vite-plugin-windicss": "^1.8.10",
     "vue": "^3.2.47",
-    "vue-tsc": "^1.2.0"
+    "vue-tsc": "^1.2.0",
+    "windicss": "^3.5.6"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.1.0",
+    "element-plus": "^2.3.1",
+    "vue-router": "4"
   }
 }
