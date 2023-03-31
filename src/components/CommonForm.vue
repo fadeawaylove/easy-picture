@@ -14,7 +14,7 @@
 import { ref } from 'vue'
 
 
-const props = defineProps({
+defineProps({
     confirmText: {
         type: String,
         default: "提交"
@@ -42,7 +42,7 @@ defineExpose({
     width: 100%;
     height: 100%;
     position: relative;
-    @apply flex flex-col;
+    @apply flex-col;
 }
 
 .form .body {

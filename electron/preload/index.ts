@@ -1,3 +1,17 @@
+
+const { contextBridge, ipcRenderer } = require('electron')
+
+contextBridge.exposeInMainWorld('fileAPI', {
+  showOpenDialog: (options) => ipcRenderer.invoke('dialog.showOpenDialog', options)
+})
+
+contextBridge.exposeInMainWorld('storeApi', {
+  storeSet: (k, v) => ipcRenderer.invoke('electron.store.set', k, v),
+  storeGet: (k, v) => ipcRenderer.invoke('electron.store.get', k, v),
+  storeDelete: (k) => ipcRenderer.invoke('electron.store.delete', k)
+})
+
+
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {

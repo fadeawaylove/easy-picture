@@ -29,6 +29,11 @@ const menus = [
         icon: "UploadFilled"
     },
     {
+        name: "仓库",
+        path: "/storage/list",
+        icon: "House"
+    },
+    {
         name: "设置",
         path: "/settings",
         icon: "Setting"

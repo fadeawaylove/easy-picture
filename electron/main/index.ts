@@ -1,6 +1,7 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
+import Store from 'electron-store'
 
 // The built directory structure
 //
@@ -43,7 +44,7 @@ const indexHtml = join(process.env.DIST, 'index.html')
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Easy Picture',
-    width: 800,
+    width: 1200,
     height: 600,
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
@@ -51,8 +52,8 @@ async function createWindow() {
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
-      nodeIntegration: true,
-      contextIsolation: false,
+      // nodeIntegration: true,
+      // contextIsolation: false,
     },
   })
   if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
@@ -77,7 +78,27 @@ async function createWindow() {
   // win.webContents.on('will-navigate', (event, url) => { }) #344
 }
 
-app.whenReady().then(createWindow)
+
+async function showOpenDialog(options: Electron.OpenDialogOptions) {
+  // 打开文件
+  const { canceled, filePaths } = await dialog.showOpenDialog(options)
+  if (canceled) {
+    return
+  } else {
+    return filePaths[0]
+  }
+}
+
+
+const localStore = new Store({ name: "EasyPicture" })
+
+app.whenReady().then(() => {
+  ipcMain.handle('dialog.showOpenDialog', (_, options: Electron.OpenDialogOptions) => { return showOpenDialog(options) })
+  ipcMain.handle('electron.store.set', (_, k, v) => { return localStore.set(k, v) })
+  ipcMain.handle('electron.store.get', (_, k, v) => { return localStore.get(k, v) })
+  ipcMain.handle('electron.store.delete', (_, k) => { return localStore.delete(k) })
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   win = null
