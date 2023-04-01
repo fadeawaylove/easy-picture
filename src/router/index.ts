@@ -2,14 +2,15 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '~/pages/Home.vue'
 import StorageList from '~/pages/storage/List.vue'
-import StorageAdd from '~/pages/storage/Add.vue'
+import StorageAddOrEdit from '~/pages/storage/AddOrEdit.vue'
 import Settings from '~/pages/settings/Settings.vue'
 
 
 const routes = [
     { path: '/', component: Home },
     { path: '/storage/list', component: StorageList },
-    { path: '/storage/add', component: StorageAdd },
+    { path: '/storage/addoredit/:id', component: StorageAddOrEdit },
+    { path: '/storage/addoredit', component: StorageAddOrEdit },
     { path: '/settings', component: Settings },
 ]
 

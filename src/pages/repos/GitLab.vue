@@ -24,7 +24,7 @@
             </el-form-item>
 
             <el-form-item prop="path" label="存储路径">
-                <el-input v-model="form.branch" placeholder="请输入存储路径，不填则为/img" required clearable class="my-1">
+                <el-input v-model="form.path" placeholder="请输入存储路径，不填则为/img" required clearable class="my-1">
                 </el-input>
             </el-form-item>
 
@@ -36,24 +36,45 @@
 <script setup lang="ts">
 import CommonForm from '~/components/CommonForm.vue'
 import { useRouter } from 'vue-router'
-import { ref, Ref, reactive, toRaw } from 'vue'
+import { ref, Ref, reactive, onMounted, onBeforeMount, toRaw } from 'vue'
 import { ElForm, ElTable } from "element-plus";
 import { checkAccessToken } from '~/api/gitlab'
+import { toast } from '~/utils/notify';
+import { genUUID } from '~/utils/id';
 
 export type ElFormInstance = InstanceType<typeof ElForm>;
 export type CommonFormInstance = InstanceType<typeof CommonForm>;
 
-
+const router = useRouter()
 const formRef = ref<ElFormInstance | null>(null)
 const formFrameRef = ref<CommonFormInstance | null>(null)
 
-const form = reactive({
-    name: '123',
+const props = defineProps({
+    sid: {
+        type: String,
+        default: ""
+    }
+})
+
+interface Form {
+    name: string;
+    projectId: string;
+    accessToken: string;
+    branch: string;
+    path: string;
+    type: string;
+    id: string;
+}
+
+const form: Ref<Form> = ref(reactive({
+    name: '',
     projectId: '42641795',
     accessToken: 'glpat-N5dPNBna8B9k9qax-3ZC',
     branch: '',
-    path: ''
-})
+    path: '',
+    type: "GitLab",
+    id: genUUID()
+}))
 
 const rules = {
     name: [
@@ -67,24 +88,55 @@ const rules = {
     ]
 }
 
+onMounted(() => {
+
+    if (props.sid) {
+        (window as any).storeApi.storeGet("repo.list", []).then((repoList: Array<any>) => {
+            console.log(props.sid)
+            var x = repoList.find((item: any) => item.id === props.sid)
+            if (x) {
+                var formValue = form.value
+                formValue.name = x.name
+                formValue.projectId = x.projectId
+                formValue.accessToken = x.accessToken
+                formValue.branch = x.branch
+                formValue.path = x.path
+                formValue.type = x.type
+                formValue.id = x.id
+            }
+        })
+    }
+
+})
+
+
 const onSubmit = () => {
     formRef.value && formRef.value.validate((valid?: boolean) => {
         if (valid) {
             formFrameRef.value && formFrameRef.value.showLoading()
             // 请求gitlab，校验有效性然后保存
-            checkAccessToken(form.projectId, form.accessToken).then((res) => {
-                // 1.保存配置
-                // window.storeApi.storeSet("test.name", form.name)
-                // window.storeApi.storeGet("test.name").then(res => {
-                //     console.log(res)
-                // })
-                (window as any).storeApi.storeGet("repo.list", []).then((repoList: Array<Object>) => {
-                    console.log(repoList)
-                    repoList.push(toRaw(form));
-                    (window as any).storeApi.storeSet("repo.list", repoList)
+            var formValue = form.value
+            checkAccessToken(formValue.projectId, formValue.accessToken).then((res) => {
+
+                (window as any).storeApi.storeGet("repo.list", []).then((repoList: Array<Form>) => {
+
+                    // 如果有sid,则为编辑，自动填充
+                    const index = repoList.findIndex(item => item.id === formValue.id);
+                    console.log("仓库id", formValue.id)
+                    if (index >= 0) {
+                        repoList.splice(index, 1, toRaw(form.value));
+                    } else {
+                        repoList.unshift(toRaw(form.value))
+                    }
+                    (window as any).storeApi.storeSet("repo.list", repoList).then(() => {
+                        // 保存成功回到列表页
+                        toast("保存成功！")
+                        router.push("/storage/list")
+                    })
+
                 })
             }).catch(err => {
-                console.log(err)
+                console.error(err)
             }).finally(() => {
                 formFrameRef.value && formFrameRef.value.hideLoading()
             })
