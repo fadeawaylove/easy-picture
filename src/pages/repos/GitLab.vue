@@ -24,7 +24,7 @@
             </el-form-item>
 
             <el-form-item prop="path" label="存储路径">
-                <el-input v-model="form.path" placeholder="请输入存储路径，不填则为/img" required clearable class="my-1">
+                <el-input v-model="form.path" placeholder="请输入存储路径，不填则为img" required clearable class="my-1">
                 </el-input>
             </el-form-item>
 
@@ -38,7 +38,7 @@ import CommonForm from '~/components/CommonForm.vue'
 import { useRouter } from 'vue-router'
 import { ref, Ref, reactive, onMounted, onBeforeMount, toRaw } from 'vue'
 import { ElForm, ElTable } from "element-plus";
-import { checkAccessToken } from '~/api/gitlab'
+import { checkAccessToken, createBranch } from '~/api/gitlab'
 import { toast } from '~/utils/notify';
 import { genUUID } from '~/utils/id';
 import { getRepoList, saveRepo, saveRepoList } from '~/api/localRepo';
@@ -113,6 +113,7 @@ const onSubmit = async () => {
     var formValue = form.value
     checkAccessToken(formValue.projectId, formValue.accessToken).then(async (res) => {
         console.log(res)
+        await createBranch(toRaw(formValue))
         await saveRepo(toRaw(formValue))
         toast("保存成功！")
         router.push("/storage/list")

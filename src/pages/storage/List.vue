@@ -18,7 +18,7 @@
 import { Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
-import { getRepoList, deleteRepoByID } from '~/api/localRepo';
+import { getRepoList, deleteRepoByID, deleteDefaultRepo } from '~/api/localRepo';
 import { showModal } from '~/utils/notify';
 import { toast } from '../../utils/notify';
 
@@ -37,6 +37,7 @@ const editStorage = (row: any) => {
 const deleteStorage = async (row: any) => {
     showModal(`确定删除仓库【${row.name}】？`).then(async (res) => {
         await deleteRepoByID(row.id)
+        await deleteDefaultRepo()
         toast(`删除仓库【${row.name}】成功`)
         tableData.value = await getRepoList();
     }).catch(err => { }).finally()

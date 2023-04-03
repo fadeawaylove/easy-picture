@@ -3,7 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('fileAPI', {
   showOpenDialog: (options) => ipcRenderer.invoke('dialog.showOpenDialog', options),
-  fsReadFile: (filePath: string, options) => ipcRenderer.invoke('fs.readFile', filePath, options)
+  fsReadFile: (filePath: string, options) => ipcRenderer.invoke('fs.readFile', filePath, options),
+  uint8ToBase64: (u: Uint8Array) => ipcRenderer.invoke('buffer.base64', u),
 })
 
 contextBridge.exposeInMainWorld('storeApi', {

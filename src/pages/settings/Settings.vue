@@ -6,7 +6,7 @@
 <script lang="ts" setup>
 
 const test = async () => {
-  const filePath = await window.fileAPI.showOpenDialog({
+  const filePath = await (window  as any).fileAPI.showOpenDialog({
     properties: ['openDirectory']
   })
 }

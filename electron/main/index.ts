@@ -96,6 +96,7 @@ const localStore = new Store({ name: "EasyPicture" })
 app.whenReady().then(() => {
   ipcMain.handle('dialog.showOpenDialog', (_, options: Electron.OpenDialogOptions) => { return showOpenDialog(options) })
   ipcMain.handle('fs.readFile', (_, path, options) => fs.readFileSync(path, options))
+  ipcMain.handle('buffer.base64', (_, b: Uint8Array) => Buffer.from(b).toString("base64"))
   ipcMain.handle('electron.store.set', (_, k, v) => { return localStore.set(k, v) })
   ipcMain.handle('electron.store.get', (_, k, v) => { return localStore.get(k, v) })
   ipcMain.handle('electron.store.delete', (_, k) => { return localStore.delete(k) })
