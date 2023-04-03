@@ -41,6 +41,7 @@ import { ElForm, ElTable } from "element-plus";
 import { checkAccessToken } from '~/api/gitlab'
 import { toast } from '~/utils/notify';
 import { genUUID } from '~/utils/id';
+import { getRepoList, saveRepo, saveRepoList } from '~/api/localRepo';
 
 export type ElFormInstance = InstanceType<typeof ElForm>;
 export type CommonFormInstance = InstanceType<typeof CommonForm>;
@@ -50,9 +51,9 @@ const formRef = ref<ElFormInstance | null>(null)
 const formFrameRef = ref<CommonFormInstance | null>(null)
 
 const props = defineProps({
-    sid: {
-        type: String,
-        default: ""
+    repo: {
+        type: Object,
+        default: {}
     }
 })
 
@@ -89,59 +90,35 @@ const rules = {
 }
 
 onMounted(() => {
-
-    if (props.sid) {
-        (window as any).storeApi.storeGet("repo.list", []).then((repoList: Array<any>) => {
-            console.log(props.sid)
-            var x = repoList.find((item: any) => item.id === props.sid)
-            if (x) {
-                var formValue = form.value
-                formValue.name = x.name
-                formValue.projectId = x.projectId
-                formValue.accessToken = x.accessToken
-                formValue.branch = x.branch
-                formValue.path = x.path
-                formValue.type = x.type
-                formValue.id = x.id
-            }
-        })
+    var repo = props.repo
+    if (repo.id) {
+        var formValue = form.value
+        Object.assign(formValue, repo);
+        console.log("load form data", formValue)
     }
-
 })
 
 
-const onSubmit = () => {
-    formRef.value && formRef.value.validate((valid?: boolean) => {
-        if (valid) {
-            formFrameRef.value && formFrameRef.value.showLoading()
-            // 请求gitlab，校验有效性然后保存
-            var formValue = form.value
-            checkAccessToken(formValue.projectId, formValue.accessToken).then((res) => {
+const onSubmit = async () => {
+    const isValid = await new Promise((resolve) => {
+        if (!formRef.value) { return; }
+        formRef.value.validate((valid?: boolean) => {
+            resolve(valid);
+        });
+    });
+    if (!isValid) { return }
 
-                (window as any).storeApi.storeGet("repo.list", []).then((repoList: Array<Form>) => {
-
-                    // 如果有sid,则为编辑，自动填充
-                    const index = repoList.findIndex(item => item.id === formValue.id);
-                    console.log("仓库id", formValue.id)
-                    if (index >= 0) {
-                        repoList.splice(index, 1, toRaw(form.value));
-                    } else {
-                        repoList.unshift(toRaw(form.value))
-                    }
-                    (window as any).storeApi.storeSet("repo.list", repoList).then(() => {
-                        // 保存成功回到列表页
-                        toast("保存成功！")
-                        router.push("/storage/list")
-                    })
-
-                })
-            }).catch(err => {
-                console.error(err)
-            }).finally(() => {
-                formFrameRef.value && formFrameRef.value.hideLoading()
-            })
-
-        }
+    formFrameRef.value && formFrameRef.value.showLoading()
+    // 请求gitlab，校验有效性然后保存
+    var formValue = form.value
+    checkAccessToken(formValue.projectId, formValue.accessToken).then(async (res) => {
+        await saveRepo(toRaw(formValue))
+        toast("保存成功！")
+        router.push("/storage/list")
+    }).catch(err => {
+        console.error(err)
+    }).finally(() => {
+        formFrameRef.value && formFrameRef.value.hideLoading()
     })
 }
 </script>

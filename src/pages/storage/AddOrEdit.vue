@@ -12,8 +12,7 @@
         </div>
         <el-divider border-style="dashed" />
 
-
-        <GitLab v-if="value == 'GitLab'" :sid="sid" />
+        <GitLab v-if="value == 'GitLab'" :repo="repo" />
         <span v-if="value == 'GitHub'">GitHub</span>
         <span v-if="value == 'Gitee'">Gitee</span>
     </div>
@@ -23,6 +22,7 @@
 
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router';
+import { getRepoList, getRepoByID } from '~/api/localRepo';
 import GitLab from '~/pages/repos/GitLab.vue'
 
 const route = useRoute()
@@ -30,18 +30,24 @@ const route = useRoute()
 const value = ref()
 const disabled = ref(false)
 const action = ref("新增仓库")
-
 const options = ["GitLab", "GitHub", "Gitee"]
-const sid = ref()
+const repo = ref()
 
-onMounted(() => {
-    sid.value = route.params.id
-    if (sid.value) {
-        (window as any).storeApi.storeGet("repo.list", []).then((repoList: Array<Object>) => {
-            value.value = "GitLab"
+onMounted(async () => {
+    var str
+    if (Array.isArray(route.params.id)) {
+        str = route.params.id[0];
+    } else {
+        str = route.params.id;
+    }
+    if (str) {
+        var _repo = await getRepoByID(str)
+        if (_repo) {
+            repo.value = _repo
+            value.value = _repo.type
             disabled.value = true
             action.value = "编辑仓库"
-        })
+        }
     }
 })
 
