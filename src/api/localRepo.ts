@@ -59,3 +59,18 @@ export const deleteAllRepos = async () => {
     await (window as any).storeApi.storeDelete("repo.list")
 }
 
+
+export const setDefaultRepo = async (sid: string) => {
+    return await (window as any).storeApi.storeSet("defaul.repo.id", sid)
+}
+
+
+export const getDefaultRepo = async () => {
+    var sid = await (window as any).storeApi.storeGet("defaul.repo.id", "")
+    return await getRepoByID(sid)
+}
+
+export const getDefaultRepoID = async () => {
+    return await (window as any).storeApi.storeGet("defaul.repo.id", "")
+}
+

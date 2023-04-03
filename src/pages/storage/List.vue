@@ -1,8 +1,6 @@
 
 <template>
     <el-button type="primary" size="default" @click="addStorage">新增</el-button>
-
-
     <el-table :data="tableData">
         <el-table-column prop="name" label="仓库名" />
         <el-table-column prop="type" label="存储类型" />

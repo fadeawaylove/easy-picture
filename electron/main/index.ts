@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import Store from 'electron-store'
+const fs = require('fs')
 
 // The built directory structure
 //
@@ -94,6 +95,7 @@ const localStore = new Store({ name: "EasyPicture" })
 
 app.whenReady().then(() => {
   ipcMain.handle('dialog.showOpenDialog', (_, options: Electron.OpenDialogOptions) => { return showOpenDialog(options) })
+  ipcMain.handle('fs.readFile', (_, path, options) => fs.readFileSync(path, options))
   ipcMain.handle('electron.store.set', (_, k, v) => { return localStore.set(k, v) })
   ipcMain.handle('electron.store.get', (_, k, v) => { return localStore.get(k, v) })
   ipcMain.handle('electron.store.delete', (_, k) => { return localStore.delete(k) })

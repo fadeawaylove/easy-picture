@@ -2,7 +2,8 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('fileAPI', {
-  showOpenDialog: (options) => ipcRenderer.invoke('dialog.showOpenDialog', options)
+  showOpenDialog: (options) => ipcRenderer.invoke('dialog.showOpenDialog', options),
+  fsReadFile: (filePath: string, options) => ipcRenderer.invoke('fs.readFile', filePath, options)
 })
 
 contextBridge.exposeInMainWorld('storeApi', {

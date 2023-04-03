@@ -3,7 +3,7 @@ import { toast } from '~/utils/notify';
 
 const service = axios.create({
   baseURL: '/api',
-  timeout: 5000,
+  timeout: 20000,
   headers: { 'X-Custom-Header': 'foobar' },
 });
 

@@ -112,6 +112,7 @@ const onSubmit = async () => {
     // 请求gitlab，校验有效性然后保存
     var formValue = form.value
     checkAccessToken(formValue.projectId, formValue.accessToken).then(async (res) => {
+        console.log(res)
         await saveRepo(toRaw(formValue))
         toast("保存成功！")
         router.push("/storage/list")
