@@ -19,8 +19,7 @@ import { Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { getRepoList, deleteRepoByID, deleteDefaultRepo } from '~/api/localRepo';
-import { showModal } from '~/utils/notify';
-import { toast } from '../../utils/notify';
+import { showModal,toast } from '~/utils/notify';
 
 const router = useRouter()
 

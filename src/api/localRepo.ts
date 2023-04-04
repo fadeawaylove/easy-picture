@@ -78,3 +78,23 @@ export const getDefaultRepoID = async () => {
     return await (window as any).storeApi.storeGet("defaul.repo.id", "")
 }
 
+
+export const addImageToGallary = async ({ url, name }: { url: string, name: string }) => {
+    var images = await (window as any).storeApi.storeGet("image.gallary", []);
+    images.unshift({ url, name }); // 在第一位添加新图片信息
+    await (window as any).storeApi.storeSet("image.gallary", images); // 保存到本地存储中
+    return images;
+};
+
+export const getImagesFromGallary = async (i: number = 1, n: number = 10) => {
+    const images = await (window as any).storeApi.storeGet('image.gallary', []);
+    const startIndex = (i - 1) * n;
+    const endIndex = startIndex + n;
+
+    const result = {
+        total: images.length,
+        items: images.slice(startIndex, endIndex),
+    };
+
+    return result;
+};

@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('fileAPI', {
   showOpenDialog: (options) => ipcRenderer.invoke('dialog.showOpenDialog', options),
   fsReadFile: (filePath: string, options) => ipcRenderer.invoke('fs.readFile', filePath, options),
   uint8ToBase64: (u: Uint8Array) => ipcRenderer.invoke('buffer.base64', u),
+  readClipboardImage: (u: Uint8Array) => ipcRenderer.invoke('clipboard.readImage'),
 })
 
 contextBridge.exposeInMainWorld('storeApi', {

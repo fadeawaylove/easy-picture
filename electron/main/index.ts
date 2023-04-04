@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog, clipboard } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import Store from 'electron-store'
@@ -42,11 +42,16 @@ const preload = join(__dirname, '../preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(process.env.DIST, 'index.html')
 
+
+const isMac = process.platform === 'darwin';
+const isWindows = process.platform === 'win32';
+
+
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Easy Picture',
     width: 1200,
-    height: 600,
+    height: 800,
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload,
@@ -91,11 +96,58 @@ async function showOpenDialog(options: Electron.OpenDialogOptions) {
 }
 
 
+function getFileNameFromPath(path: string): string {
+  const pathSegments = path.split(/[\\/]/);
+  const fileName = pathSegments[pathSegments.length - 1];
+  return fileName;
+}
+
+function generateRandomString(length: number): string {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+const readImageClipboard = () => {
+  try {
+    let img = clipboard.readImage();
+    if (img.isEmpty()) {
+      if (isMac) {
+        var filePath = clipboard.read('public.file-url').replace('file://', '');
+      } else if (isWindows) {
+        var filePath = clipboard.readBuffer('FileNameW').toString('ucs2')
+        filePath = filePath.replace(RegExp(String.fromCharCode(0), 'g'), '');
+      } else {
+        return {}
+      }
+      let fileName = getFileNameFromPath(filePath)
+      let fileContent = Buffer.from(fs.readFileSync(filePath)).toString("base64")
+      return { fileName, fileContent }
+    }
+    let dataUrl = img.toDataURL();
+    const matches = dataUrl.match(/^data:image\/([A-Za-z-+\/]+);base64,(.+)$/)
+    if (!matches) {
+      return {}
+    }
+    let fileName = generateRandomString(8) + "." + matches[1]
+    let fileContent = matches[2]
+    return { fileName, fileContent }
+  }
+  catch (err) {
+    return {}
+  }
+}
+
 const localStore = new Store({ name: "EasyPicture" })
 
 app.whenReady().then(() => {
   ipcMain.handle('dialog.showOpenDialog', (_, options: Electron.OpenDialogOptions) => { return showOpenDialog(options) })
   ipcMain.handle('fs.readFile', (_, path, options) => fs.readFileSync(path, options))
+  ipcMain.handle('clipboard.readImage', (_) => readImageClipboard())
   ipcMain.handle('buffer.base64', (_, b: Uint8Array) => Buffer.from(b).toString("base64"))
   ipcMain.handle('electron.store.set', (_, k, v) => { return localStore.set(k, v) })
   ipcMain.handle('electron.store.get', (_, k, v) => { return localStore.get(k, v) })

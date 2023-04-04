@@ -2,9 +2,9 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { toast } from '~/utils/notify';
 
 const service = axios.create({
-  baseURL: '/api',
-  timeout: 20000,
-  headers: { 'X-Custom-Header': 'foobar' },
+  // baseURL: '/api',
+  timeout: 60000,
+  // headers: { 'X-Custom-Header': 'foobar' },
 });
 
 // 添加请求拦截器

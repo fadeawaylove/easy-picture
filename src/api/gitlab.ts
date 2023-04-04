@@ -1,4 +1,6 @@
+import { AxiosProgressEvent } from "axios";
 import axios from "~/axios";
+import { addImageToGallary } from "./localRepo";
 
 export function checkAccessToken(projectId: string, accessToken: string) {
     return axios.get(`https://gitlab.com/api/v4/projects/${projectId}?private_token=${accessToken}`);
@@ -11,13 +13,15 @@ interface Repo {
     path?: string;
 }
 
+type OnUploadProgress = (progressEvent: AxiosProgressEvent) => void;
+
 export async function uploadFile(
     repo: Repo,
     fileContent: string,
     fileName: string,
     commitMessage: string = 'Add a new file via API',
-
-): Promise<string | null> {
+    onUploadProgress: OnUploadProgress
+): Promise<string> {
     var projectId = repo.projectId
     var accessToken = repo.accessToken
     var branch = repo.branch || "master"
@@ -35,12 +39,11 @@ export async function uploadFile(
         commit_message: commitMessage,
         content: fileContent,
     };
-    const response = await axios.post(url, data, { headers, onUploadProgress:(progressEvent)=>{
-        console.log(progressEvent.loaded)
-        console.log(progressEvent.total)
-    } } );
+    const response = await axios.post(url, data, { headers, onUploadProgress: onUploadProgress });
     console.log('New file created successfully:', response);
-    return `https://gitlab.com/api/v4/projects/${projectId}/repository/files/${encodeURIComponent(uploadPath)}/raw?ref=${branch}`;
+    var res = `https://gitlab.com/api/v4/projects/${projectId}/repository/files/${encodeURIComponent(uploadPath)}/raw?ref=${branch}`;
+    await addImageToGallary({ url: res, name: fileName })
+    return res
 }
 
 export async function createBranch(

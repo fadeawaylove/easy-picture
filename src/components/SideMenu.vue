@@ -1,5 +1,5 @@
 <template>
-    <el-aside width="100px">
+    <el-aside width="90px">
         <div class="f-menu">
             <el-menu :default-active="$route.path" class=" border-0" @select="handleSelect">
                 <el-menu-item v-for="(item, index) in menus" :index="item.path">
