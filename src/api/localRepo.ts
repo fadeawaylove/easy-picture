@@ -86,7 +86,7 @@ export const addImageToGallary = async ({ url, name }: { url: string, name: stri
     return images;
 };
 
-export const getImagesFromGallary = async (i: number = 1, n: number = 10) => {
+export const getImagesFromGallary = async (i: number = 1, n: number = 5) => {
     const images = await (window as any).storeApi.storeGet('image.gallary', []);
     const startIndex = (i - 1) * n;
     const endIndex = startIndex + n;

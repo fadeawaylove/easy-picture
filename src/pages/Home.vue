@@ -1,42 +1,38 @@
 <template>
-    <div class="">
+    <div class="flex mb-4 flex justify-center items-center ">
+        <el-select v-model="repoID" placeholder="选择仓库" clearable filterable @change="changeRepo">
+            <el-option v-for="item in repoList" :key="item.id" :label="item.name" :value="item.id" />
+        </el-select>
+    </div>
 
+    <div>
+        <div @dragover.prevent @drop="handleDrop"
+            class="flex flex-col w-full h-full justify-center items-center border-2 border-dashed border-gray-300 p-1 pb-0">
+            <div class="flex flex-col justify-center items-center w-full h-full bg-gray-100 rounded-lg">
+                <img src="up-bg.png" class="flex w-10 h-10 mb-6 mt-4">
+                <span class="mb-6">拖拽图片到此处上传</span>
+                <span class="mb-6">或者</span>
 
-        <div class="flex mb-4 flex justify-center items-center ">
-            <el-select v-model="repoID" placeholder="选择仓库" clearable filterable @change="changeRepo">
-                <el-option v-for="item in repoList" :key="item.id" :label="item.name" :value="item.id" />
-            </el-select>
-        </div>
-
-        <div>
-            <div @dragover.prevent @drop="handleDrop"
-                class="flex flex-col w-full h-full justify-center items-center border-2 border-dashed border-gray-300 p-1 pb-0">
-                <div class="flex flex-col justify-center items-center w-full h-full bg-gray-100 rounded-lg">
-                    <img src="up-bg.png" class="flex w-10 h-10 mb-6 mt-4">
-                    <span class="mb-6">拖拽图片到此处上传</span>
-                    <span class="mb-6">或者</span>
-
-                    <div class="flex">
-                        <el-button @click="clipBoardFileUpload" class="mb-2">剪切板上传</el-button>
-                        <el-button @click="selectFileUpload" class="mb-2">选择图片上传</el-button>
-                    </div>
-
+                <div class="flex">
+                    <el-button @click="clipBoardFileUpload" class="mb-2">剪切板上传</el-button>
+                    <el-button @click="selectFileUpload" class="mb-2">选择图片上传</el-button>
                 </div>
-                <el-progress ref="progress" class="w-full mb-1" :text-inside="true" :stroke-width="16"
-                    :percentage="percentage" status="success" />
+
             </div>
+            <el-progress ref="progress" class="w-full mb-1" :text-inside="true" :stroke-width="16" :percentage="percentage"
+                status="success" />
         </div>
-
-        <div class="h-380px mt-4 overflow-y-auto">
-            <el-scrollbar @scroll="imageScroll" ref="scrollbar">
-                <!-- <ul v-infinite-scroll="loadImages" class="infinite-list" style="overflow: auto"> -->
-                <el-image class="w-150px h-150px" v-for="{ url } in imagesList" :key="url" :src="url" fit="scale-down" />
-                <!-- </ul> -->
-
-            </el-scrollbar>
-        </div>
+    </div>
 
 
+    <div class="flex flex-col">
+        <el-text class="mx-1 mt-2 mb-1" type="info" size="large">最近上传</el-text>
+        <el-carousel indicator-position="outside" :interval="5000" arrow="always" class="">
+            <el-carousel-item v-for="{ url } in imagesList" :key="url"
+                class="flex justify-center items-center bg-light-500 ">
+                <el-image class="h-300px" :src="url" fit="scale-down" loading="lazy"/>
+            </el-carousel-item>
+        </el-carousel>
     </div>
 </template>
 
@@ -47,7 +43,6 @@ import { uploadFile, createBranch } from '~/api/gitlab';
 import { getRepoList, getDefaultRepo, getRepoByID, setDefaultRepo, getDefaultRepoID, getImagesFromGallary } from '~/api/localRepo';
 import { toast } from '~/utils/notify';
 import { getFileNameFromPath, readFileAndConvertToBase64 } from '~/utils/common';
-import { Callback } from 'element-plus';
 
 
 const repoID = ref()
@@ -55,26 +50,8 @@ const repoList = ref()
 const currentRepo = ref()
 const progress = ref()
 const percentage = ref(0)
-const scrollbar = ref()
-
 const imagesList = ref([])
-const imageCount = ref(0)
-const nowIndex = ref(1)
 
-const isScrollbarAtBottom = (scrollTop, scrollHeight, clientHeight) => {
-    const bottomThreshold = 5; // 底部阈值，防止出现误差
-
-    return scrollTop + clientHeight + bottomThreshold >= scrollHeight;
-}
-
-const imageScroll = async ({ scrollTop, scrollLeft }: { scrollTop: number, scrollLeft: number }) => {
-
-
-    // 判断是否滑动到了底部
-    const isAtBottom = isScrollbarAtBottom(scrollTop, scrollLeft, 380);
-    console.log(isAtBottom)
-
-}
 
 const handleDrop = async (event: DragEvent) => {
     percentage.value = 0
@@ -153,11 +130,9 @@ const changeRepo = async (sid: string) => {
     await setCurrentRepo()
 }
 
-const loadImages = async (i = 1) => {
-    const { items, total } = await getImagesFromGallary(i);
+const loadImages = async () => {
+    const { items } = await getImagesFromGallary();
     imagesList.value = items
-    imageCount.value = total
-    nowIndex.value = i + 1
 }
 
 onMounted(async () => {
@@ -172,4 +147,11 @@ onMounted(async () => {
 
 
 
-<style scoped></style>
+<style scoped>
+:deep(.el-image__placeholder) {
+    background: url('/loading.gif') no-repeat 50% 50%;
+    background-size: 100px;
+    width: 100%;
+    height: 100%;
+}
+</style>
