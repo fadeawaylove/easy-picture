@@ -1,157 +1,210 @@
-<template>
-    <div class="flex mb-4 flex justify-center items-center ">
-        <el-select v-model="repoID" placeholder="选择仓库" clearable filterable @change="changeRepo">
-            <el-option v-for="item in repoList" :key="item.id" :label="item.name" :value="item.id" />
-        </el-select>
-    </div>
+<template >
+    <div class="upload-home" @scroll="handleScroll">
 
-    <div>
-        <div @dragover.prevent @drop="handleDrop"
-            class="flex flex-col w-full h-full justify-center items-center border-2 border-dashed border-gray-300 p-1 pb-0">
-            <div class="flex flex-col justify-center items-center w-full h-full bg-gray-100 rounded-lg">
-                <img src="up-bg.png" class="flex w-10 h-10 mb-6 mt-4">
-                <span class="mb-6">拖拽图片到此处上传</span>
-                <span class="mb-6">或者</span>
-
-                <div class="flex">
-                    <el-button @click="clipBoardFileUpload" class="mb-2">剪切板上传</el-button>
-                    <el-button @click="selectFileUpload" class="mb-2">选择图片上传</el-button>
-                </div>
-
-            </div>
-            <el-progress ref="progress" class="w-full mb-1" :text-inside="true" :stroke-width="16" :percentage="percentage"
-                status="success" />
+        <div class="flex mb-4 flex justify-center items-center ">
+            <el-select v-model="repoID" placeholder="选择仓库" clearable filterable @change="changeRepo" size="small">
+                <el-option v-for="item in repoList" :key="item.id" :label="item.name" :value="item.id" />
+            </el-select>
         </div>
-    </div>
 
+        <el-upload class="" ref="uploadRef" drag action="#" multiple :http-request="handleUpload" accept="image/*"
+            :before-upload="beforeUpload" :limit="1" :on-exceed="handleExceed" :on-progress="onProgress">
+            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <div class="el-upload__text">
+                拖拽图片到此上传 或 <em>点击选择图片上传</em>
+            </div>
+            <div>
+                <el-button type="primary" class="mt-4" size="large" text @click.stop="clipBoardUpload">剪切板上传</el-button>
+            </div>
+        </el-upload>
 
-    <div class="flex flex-col">
-        <el-text class="mx-1 mt-2 mb-1" type="info" size="large">最近上传</el-text>
-        <el-carousel indicator-position="outside" :interval="5000" arrow="always" class="">
-            <el-carousel-item v-for="{ url } in imagesList" :key="url"
-                class="flex justify-center items-center bg-light-500 ">
-                <el-image class="h-300px" :src="url" fit="scale-down" loading="lazy"/>
-            </el-carousel-item>
-        </el-carousel>
+        <div class="">
+            <el-table :data="imagesList" class="w-full" border fit table-layout="auto">
+
+                <el-table-column label="文件名">
+                    <template #default="scope">
+                        <el-text class="mx-1 text-gray-700">{{ scope.row.name }}</el-text>
+                    </template>
+                </el-table-column>
+
+                <el-table-column label="上传时间">
+                    <template #default="scope">
+                        <el-text class="mx-1" type="info" size="small">{{ scope.row.uploadTime }}</el-text>
+                    </template>
+                </el-table-column>
+
+                <el-table-column label="大小">
+                    <template #default="scope">
+                        <el-text class="mx-1" type="info" size="small">{{ scope.row.size }}</el-text>
+                    </template>
+                </el-table-column>
+
+                <el-table-column label="操作">
+                    <template #default="scope">
+                        <div class="flex flex-col items-center justify-center">
+                            <el-button  type="success" text class="!text-green-500" @click="handlerUrlCopy(scope.row)">复制地址</el-button>
+                            <el-button  type="info" text class=" !text-yellow-500" @click="handleOpenInBrowser(scope.row)">浏览器打开</el-button>
+                        </div>
+
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div class="flex items-center justify-center mt-2" v-if="imageLoadCount >= imageTotalCount"><el-text
+                    type="info">哦豁，没了~</el-text></div>
+        </div>
     </div>
 </template>
 
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { uploadFile, createBranch } from '~/api/gitlab';
-import { getRepoList, getDefaultRepo, getRepoByID, setDefaultRepo, getDefaultRepoID, getImagesFromGallary } from '~/api/localRepo';
+import { UploadFilled } from '@element-plus/icons-vue'
+import { uploadFile } from '~/api/gitlab';
+import { getRepoList, getDefaultRepo, setDefaultRepo, getImagesFromGallary, addImageToGallary } from '~/api/localRepo';
 import { toast } from '~/utils/notify';
-import { getFileNameFromPath, readFileAndConvertToBase64 } from '~/utils/common';
+import { formatDateTime, readFileAndConvertToBase64, formatFileSize, writeTextToClipboard, browserOpenExternal } from '~/utils/common';
+import { UploadFile, UploadProgressEvent, UploadProps, UploadRawFile, UploadRequestOptions, genFileId } from 'element-plus';
 
+interface Image {
+    url: string
+    name: string,
+    size: number,
+    uploadTime: Date
+}
 
+const uploadRef = ref()
 const repoID = ref()
 const repoList = ref()
 const currentRepo = ref()
-const progress = ref()
-const percentage = ref(0)
-const imagesList = ref([])
+const imagesList = ref<Image[]>([])
+const pageIndex = ref(1)
+const pageSize = ref(10)
+const imageTotalCount = ref(0)
+const imageLoadCount = ref(0)
 
-
-const handleDrop = async (event: DragEvent) => {
-    percentage.value = 0
-    const files = event.dataTransfer?.files;
-    if (!files) {
-        return
-    }
-    const file = files[0]
-    const { name: fileName, path: filePath } = file;
-    var repo = currentRepo.value
-    var fileContent = await readFileAndConvertToBase64(filePath)
-    if (!fileContent) {
-        return toast("文件内容为空", "warning")
-    }
-    var res = await uploadFile(repo, fileContent, fileName, undefined, onUploadProgress)
-    await navigator.clipboard.writeText(res);
-    toast(`上传文件${fileName}成功，文件地址已复制到剪切板`)
-    await loadImages()
+const handlerUrlCopy = async (image: Image) => {
+    console.log(image)
+    await writeTextToClipboard(image.url);
+    toast(`文件${image.name}的地址已复制到剪切板`)
 }
 
-const onUploadProgress = (event: any) => {
-    percentage.value = Math.floor(event.loaded * 100 / event.total)
+const handleOpenInBrowser = async (image: Image) => {
+    await browserOpenExternal(image.url)
 }
 
-const selectFileUpload = async () => {
-    percentage.value = 0
+const handleScroll = async () => {
+
+    console.log("more")
+}
+
+const handleExceed: UploadProps['onExceed'] = (files) => {
+    // 自动覆盖前一个上传的文件
+    uploadRef.value!.clearFiles()
+    const file = files[0] as UploadRawFile
+    file.uid = genFileId()
+    uploadRef.value!.handleStart(file)
+    uploadRef.value.submit()
+}
+
+// 上传前
+const beforeUpload = async (rawFile: UploadRawFile) => {
     if (!currentRepo.value) {
-        return toast("请选择一个可用的仓库", "warning")
+        toast("请选择一个存储仓库！", "warning")
+        return false
     }
-    const filePath = await (window as any).fileAPI.showOpenDialog({
-        properties: ['openFile'],
-        filters: [{ name: '选择图片', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff', 'webp', 'svg', 'ico'] }]
-    })
-    if (!filePath) {
-        return
+}
+
+// 上传过程中
+const onProgress = (evt: UploadProgressEvent, uploadFile: UploadFile) => { uploadFile.percentage = evt.percent }
+
+// 上传
+const handleUpload = async (options: UploadRequestOptions) => {
+
+    const onUploadProgress = (event: any) => {
+        options.onProgress({
+            percent: Math.floor(event.loaded * 100 / event.total),
+            total: event.total,
+            loaded: event.loaded
+        } as UploadProgressEvent)
     }
-    var repo = currentRepo.value
-    var fileContent = await readFileAndConvertToBase64(filePath)
+    console.log(options)
+    var file = options.file
+    var fileContent = await readFileAndConvertToBase64((file as any).path)
     if (!fileContent) {
         return toast("文件内容为空", "warning")
     }
-    var fileName = getFileNameFromPath(filePath)
-    var res = await uploadFile(repo, fileContent, fileName, undefined, onUploadProgress)
-    await navigator.clipboard.writeText(res);
-    toast(`上传文件${fileName}成功，文件地址已复制到剪切板`)
-    await loadImages()
+    var url = await uploadFile(currentRepo.value, fileContent, file.name, undefined, onUploadProgress)
+    await writeTextToClipboard(url);
+    toast(`上传文件${file.name}成功，文件地址已复制到剪切板`)
 
-}
-
-const clipBoardFileUpload = async () => {
-    percentage.value = 0
-    if (!currentRepo.value) {
-        return toast("请选择一个可用的仓库", "warning")
+    // 保存图片上传记录
+    const dateString = formatDateTime(new Date())
+    const newFile = {
+        url, uploadTime: dateString, name: file.name, path: (file as any).path, size: formatFileSize(file.size),
+        lastModified: file.lastModified, lastModifiedDate: (file as any).lastModifiedDate, type: file.type, uid: (file as any).uid
     }
-    let a = await (window as any).fileAPI.readClipboardImage()
-    console.log(a)
-
-    const { fileName, fileContent } = await (window as any).fileAPI.readClipboardImage()
-    if (!fileContent) {
-        return toast("文件内容为空", "warning")
-    }
-    var repo = currentRepo.value
-    var res = await uploadFile(repo, fileContent, fileName, undefined, onUploadProgress)
-    await navigator.clipboard.writeText(res);
-    toast(`上传文件${fileName}成功，文件地址已复制到剪切板`)
-    await loadImages()
+    await syncDataWhenAddOne(newFile)
 }
 
-const setCurrentRepo = async () => {
-    currentRepo.value = await getDefaultRepo()
+const syncDataWhenAddOne = async (newFile: any) => {
+    await addImageToGallary(newFile)
+    imagesList.value.unshift(newFile)
+    imageTotalCount.value += 1
+    imageLoadCount.value += 1
 }
+
+const clipBoardUpload = async () => {
+    // 剪切板上传
+    const { fileName, filePath, fileType, lastModified, size, lastModifiedDate, err } = await (window as any).fileAPI.readClipboardImage()
+    if (err) { return toast(err, "warning") }
+    uploadRef.value.clearFiles()
+    uploadRef.value.handleStart({ name: fileName, path: filePath, size, lastModified, lastModifiedDate, type: fileType, uid: genFileId() })
+    uploadRef.value.submit()
+}
+
 
 const changeRepo = async (sid: string) => {
+    // 更改仓库
     console.log(sid)
     await setDefaultRepo(sid)
-    await setCurrentRepo()
+    currentRepo.value = await getDefaultRepo()
+    repoID.value = sid
 }
 
 const loadImages = async () => {
-    const { items } = await getImagesFromGallary();
-    imagesList.value = items
+    // 加载图片
+    const { items, total } = await getImagesFromGallary(pageIndex.value, pageSize.value);
+    imagesList.value = [...imagesList.value, ...items]
+    imageTotalCount.value = total
+    imageLoadCount.value += items.length
+    pageIndex.value += 1
+}
+
+const scrollTop = async () => {
+    let scrollHeight = window.innerHeight + document.documentElement.scrollTop || document.body.scrollTop;
+    let allHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)
+
+    if (imageLoadCount.value >= imageTotalCount.value) {
+        return
+    }
+    if (allHeight <= scrollHeight) {
+        await loadImages()
+        console.log(pageIndex.value, imageLoadCount.value, imageTotalCount.value, "loading more..")
+    }
 }
 
 onMounted(async () => {
-    repoList.value = await getRepoList()
-    repoID.value = await getDefaultRepoID()
-    await setCurrentRepo()
-    await loadImages()
-})
+    // 监听滚动条位置
+    window.addEventListener('scroll', scrollTop, true)
 
+    repoList.value = await getRepoList()  // 可选仓库列表
+    currentRepo.value = await getDefaultRepo()  // 选择的默认仓库
+    repoID.value = currentRepo.value.id  // 当前仓库id
+    await loadImages()  // 上传的图片记录
+})
 
 </script>
 
 
-
-<style scoped>
-:deep(.el-image__placeholder) {
-    background: url('/loading.gif') no-repeat 50% 50%;
-    background-size: 100px;
-    width: 100%;
-    height: 100%;
-}
-</style>
+<style scoped></style>

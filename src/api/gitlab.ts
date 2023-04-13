@@ -1,6 +1,5 @@
 import { AxiosProgressEvent } from "axios";
 import axios from "~/axios";
-import { addImageToGallary } from "./localRepo";
 
 export function checkAccessToken(projectId: string, accessToken: string) {
     return axios.get(`https://gitlab.com/api/v4/projects/${projectId}?private_token=${accessToken}`);
@@ -39,10 +38,8 @@ export async function uploadFile(
         commit_message: commitMessage,
         content: fileContent,
     };
-    const response = await axios.post(url, data, { headers, onUploadProgress: onUploadProgress });
-    console.log('New file created successfully:', response);
+    await axios.post(url, data, { headers, onUploadProgress: onUploadProgress });
     var res = `https://gitlab.com/api/v4/projects/${projectId}/repository/files/${encodeURIComponent(uploadPath)}/raw?ref=${branch}`;
-    await addImageToGallary({ url: res, name: fileName })
     return res
 }
 

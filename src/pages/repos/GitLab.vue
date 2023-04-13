@@ -36,12 +36,12 @@
 <script setup lang="ts">
 import CommonForm from '~/components/CommonForm.vue'
 import { useRouter } from 'vue-router'
-import { ref, Ref, reactive, onMounted, onBeforeMount, toRaw } from 'vue'
-import { ElForm, ElTable } from "element-plus";
+import { ref, Ref, reactive, onMounted, toRaw } from 'vue'
+import { ElForm } from "element-plus";
 import { checkAccessToken, createBranch } from '~/api/gitlab'
 import { toast } from '~/utils/notify';
 import { genUUID } from '~/utils/id';
-import { getRepoList, saveRepo, saveRepoList } from '~/api/localRepo';
+import { saveRepo } from '~/api/localRepo';
 
 export type ElFormInstance = InstanceType<typeof ElForm>;
 export type CommonFormInstance = InstanceType<typeof CommonForm>;
@@ -69,11 +69,11 @@ interface Form {
 
 const form: Ref<Form> = ref(reactive({
     name: '',
-    projectId: '42641795',
-    accessToken: 'glpat-N5dPNBna8B9k9qax-3ZC',
+    projectId: '',
+    accessToken: '',
     branch: '',
     path: '',
-    type: "GitLab",
+    type: "",
     id: genUUID()
 }))
 

@@ -1,8 +1,12 @@
-import { app, BrowserWindow, shell, ipcMain, dialog, clipboard } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog, clipboard, globalShortcut } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import Store from 'electron-store'
 const fs = require('fs')
+const path = require('path');
+const os = require('os');
+const mime = require('mime');
+
 
 // The built directory structure
 //
@@ -49,9 +53,10 @@ const isWindows = process.platform === 'win32';
 
 async function createWindow() {
   win = new BrowserWindow({
+
     title: 'Easy Picture',
-    width: 1200,
-    height: 800,
+    width: 800,
+    height: 600,
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload,
@@ -65,7 +70,7 @@ async function createWindow() {
   if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
     win.loadURL(url)
     // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    // win.webContents.openDevTools()
   } else {
     win.setMenu(null)
     win.loadFile(indexHtml)
@@ -112,9 +117,11 @@ function generateRandomString(length: number): string {
   return result;
 }
 
+
 const readImageClipboard = () => {
   try {
     let img = clipboard.readImage();
+    // 读取文件路径
     if (img.isEmpty()) {
       if (isMac) {
         var filePath = clipboard.read('public.file-url').replace('file://', '');
@@ -122,25 +129,40 @@ const readImageClipboard = () => {
         var filePath = clipboard.readBuffer('FileNameW').toString('ucs2')
         filePath = filePath.replace(RegExp(String.fromCharCode(0), 'g'), '');
       } else {
-        return {}
+        return { err: "不支持的系统" }
       }
       let fileName = getFileNameFromPath(filePath)
       let fileContent = Buffer.from(fs.readFileSync(filePath)).toString("base64")
-      return { fileName, fileContent }
+      let stat = fs.statSync(filePath);
+      let lastModified = stat.mtime.toISOString();
+      let size = stat.size;
+      let lastModifiedDate = stat.mtime;
+      let fileType = mime.getType(filePath);
+      return { fileName, fileContent, filePath, err: "", lastModified, size, fileType, lastModifiedDate }
     }
+    // 从内容读取
     let dataUrl = img.toDataURL();
     const matches = dataUrl.match(/^data:image\/([A-Za-z-+\/]+);base64,(.+)$/)
     if (!matches) {
-      return {}
+      return { err: "不是图片" }
     }
     let fileName = generateRandomString(8) + "." + matches[1]
     let fileContent = matches[2]
-    return { fileName, fileContent }
+    // 将图片内容保存到系统临时文件目录
+    let tempPath = path.join(os.tmpdir(), fileName);
+    fs.writeFileSync(tempPath, Buffer.from(fileContent, "base64"));
+    let stat = fs.statSync(tempPath);
+    let lastModified = stat.mtime.toISOString();
+    let size = stat.size;
+    let lastModifiedDate = stat.mtime;
+    let fileType = mime.getType(tempPath);
+    return { fileName, fileContent, filePath: tempPath, fileType, lastModified, size, lastModifiedDate, err: "" }
   }
   catch (err) {
-    return {}
+    return { err }
   }
 }
+
 
 const localStore = new Store({ name: "EasyPicture" })
 
@@ -148,14 +170,33 @@ app.whenReady().then(() => {
   ipcMain.handle('dialog.showOpenDialog', (_, options: Electron.OpenDialogOptions) => { return showOpenDialog(options) })
   ipcMain.handle('fs.readFile', (_, path, options) => fs.readFileSync(path, options))
   ipcMain.handle('clipboard.readImage', (_) => readImageClipboard())
+  ipcMain.handle('clipboard.writeText', (_, text: string) => clipboard.writeText(text))
   ipcMain.handle('buffer.base64', (_, b: Uint8Array) => Buffer.from(b).toString("base64"))
+  ipcMain.handle('browser.openExternal', (_, u: string) => shell.openExternal(u))
   ipcMain.handle('electron.store.set', (_, k, v) => { return localStore.set(k, v) })
   ipcMain.handle('electron.store.get', (_, k, v) => { return localStore.get(k, v) })
   ipcMain.handle('electron.store.delete', (_, k) => { return localStore.delete(k) })
+
+
+  ipcMain.on('toggle-devtools', (event) => {
+    const focusedWindow = BrowserWindow.getFocusedWindow()
+    if (focusedWindow) {
+      focusedWindow.webContents.toggleDevTools()
+    }
+  })
+
   createWindow()
+
+  globalShortcut.register('F12', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow()
+    if (focusedWindow) {
+      focusedWindow.webContents.toggleDevTools()
+    }
+  })
 })
 
 app.on('window-all-closed', () => {
+  globalShortcut.unregister('F12')
   win = null
   if (process.platform !== 'darwin') app.quit()
 })

@@ -1,71 +1,30 @@
-# electron-vite-vue
+## 使用
 
-🥳 Really simple `Electron` + `Vue` + `Vite` boilerplate.
+使用非常简单，基本一看就懂
 
-<!-- [![awesome-vite](https://awesome.re/mentioned-badge.svg)](https://github.com/vitejs/awesome-vite) -->
-<!-- [![Netlify Status](https://api.netlify.com/api/v1/badges/ae3863e3-1aec-4eb1-8f9f-1890af56929d/deploy-status)](https://app.netlify.com/sites/electron-vite/deploys) -->
-<!-- [![GitHub license](https://img.shields.io/github/license/caoxiemeihao/electron-vite-vue)](https://github.com/electron-vite/electron-vite-vue/blob/main/LICENSE) -->
-<!-- [![GitHub stars](https://img.shields.io/github/stars/caoxiemeihao/electron-vite-vue?color=fa6470)](https://github.com/electron-vite/electron-vite-vue) -->
-<!-- [![GitHub forks](https://img.shields.io/github/forks/caoxiemeihao/electron-vite-vue)](https://github.com/electron-vite/electron-vite-vue) -->
-[![GitHub Build](https://github.com/electron-vite/electron-vite-vue/actions/workflows/build.yml/badge.svg)](https://github.com/electron-vite/electron-vite-vue/actions/workflows/build.yml)
-[![GitHub Discord](https://img.shields.io/badge/chat-discord-blue?logo=discord)](https://discord.gg/sRqjYpEAUK)
+### 设置存储仓库
 
-## Features
+当前版本只支持gitlab作为存储仓库，后续会添加更多。
 
-📦 Out of the box  
-🎯 Based on the official [template-vue-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vue-ts), less invasive  
-🌱 Extensible, really simple directory structure  
-💪 Support using Node.js API in Electron-Renderer  
-🔩 Support C/C++ native addons  
-🖥 It's easy to implement multiple windows  
+![](https://gitlab.com/api/v4/projects/42641795/repository/files/src%2FOjQKGiCc.png/raw?ref=bbb)
 
-## Quick Start
+![](https://gitlab.com/api/v4/projects/42641795/repository/files/src%2Fcb2B1fNZ.png/raw?ref=bbb)
 
-```sh
-npm create electron-vite
-```
+设置完毕后，点击保存即可。
 
-<!-- [![quick-start](https://asciinema.org/a/483731.svg)](https://asciinema.org/a/483731) -->
+### 上传图片
 
-![electron-vite-vue.gif](/public/electron-vite-vue.gif)
+选择刚才设置的仓库
+![](https://gitlab.com/api/v4/projects/42641795/repository/files/src%2F81tqODDH.png/raw?ref=bbb)
 
-## Debug
+支持三种上传方式：拖拽图片、点击从文件夹选择图片、剪切板上传（可以是图片内容也可以是复制的图片路径）
 
-![electron-vite-react-debug.gif](https://github.com/electron-vite/electron-vite-react/blob/main/public/electron-vite-react-debug.gif?raw=true)
+### 查看图片
 
-## Directory
+上传图片的功能区下方会展示上传的图片列表,列表中支持复制图片地址或者直接浏览器打开图片查看
 
-```diff
-+ ├─┬ electron
-+ │ ├─┬ main
-+ │ │ └── index.ts    entry of Electron-Main
-+ │ └─┬ preload
-+ │   └── index.ts    entry of Preload-Scripts
-  ├─┬ src
-  │ └── main.ts       entry of Electron-Renderer
-  ├── index.html
-  ├── package.json
-  └── vite.config.ts
-```
+![](https://gitlab.com/api/v4/projects/42641795/repository/files/src%2FMR9VfeOQ.png/raw?ref=bbb)
 
-## Be aware
+## 感谢
 
-🚨 By default, this template integrates Node.js in the Renderer process. If you don't need it, you just remove the option below. [Because it will modify the default config of Vite](https://github.com/electron-vite/vite-plugin-electron-renderer#config-presets-opinionated).
-
-```diff
-# vite.config.ts
-
-export default {
-  plugins: [
--   // Use Node.js API in the Renderer-process
--   renderer({
--     nodeIntegration: true,
--   }),
-  ],
-}
-```
-
-## FAQ
-
-- [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)
-- [C/C++ addons, Node.js modules - Pre-Bundling](https://github.com/electron-vite/vite-plugin-electron-renderer#dependency-pre-bundling)
+本项目基于[electron-vite-vue](https://github.com/electron-vite/electron-vite-vue)二次开发。

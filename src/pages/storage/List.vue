@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
+import { Delete, Edit } from '@element-plus/icons-vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { getRepoList, deleteRepoByID, deleteDefaultRepo } from '~/api/localRepo';

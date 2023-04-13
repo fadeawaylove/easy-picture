@@ -1,23 +1,21 @@
 <template>
-    <el-aside width="90px">
+    <el-aside width="60px">
         <div class="f-menu">
-            <el-menu :default-active="$route.path" class=" border-0" @select="handleSelect">
-                <el-menu-item v-for="(item, index) in menus" :index="item.path">
-                    <el-icon>
+            <el-menu :default-active="$route.path" class=" border-0 p-0" @select="handleSelect">
+                <el-menu-item v-for="(item, index) in menus" :index="item.path" class="!pl-1 !pr-2">
+                    <el-icon >
                         <component :is="item.icon"></component>
                     </el-icon>
                     <span>{{ item.name }}</span>
                 </el-menu-item>
             </el-menu>
         </div>
-
     </el-aside>
 </template>
 
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 
@@ -26,18 +24,18 @@ const menus = [
     {
         name: "上传",
         path: "/",
-        icon: "UploadFilled"
+        icon: "Upload"
     },
     {
         name: "仓库",
         path: "/storage/list",
         icon: "House"
     },
-    {
-        name: "设置",
-        path: "/settings",
-        icon: "Setting"
-    }
+    // {
+    //     name: "设置",
+    //     path: "/settings",
+    //     icon: "Setting"
+    // }
 ]
 
 const handleSelect = (e: string) => {
@@ -60,4 +58,8 @@ const handleSelect = (e: string) => {
 .f-menu::-webkit-scrollbar {
     width: 0px;
 }
+
+/* .el-menu-item {
+    @apply !p-0;
+} */
 </style>

@@ -13,8 +13,8 @@
         <el-divider border-style="dashed" />
 
         <GitLab v-if="value == 'GitLab'" :repo="repo" />
-        <span v-if="value == 'GitHub'">GitHub</span>
-        <span v-if="value == 'Gitee'">Gitee</span>
+        <span v-if="value == 'GitHub'">GitHub 待完成</span>
+        <span v-if="value == 'Gitee'">Gitee 待完成</span>
     </div>
 </template>
 

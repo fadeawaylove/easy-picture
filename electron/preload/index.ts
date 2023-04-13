@@ -6,6 +6,11 @@ contextBridge.exposeInMainWorld('fileAPI', {
   fsReadFile: (filePath: string, options) => ipcRenderer.invoke('fs.readFile', filePath, options),
   uint8ToBase64: (u: Uint8Array) => ipcRenderer.invoke('buffer.base64', u),
   readClipboardImage: (u: Uint8Array) => ipcRenderer.invoke('clipboard.readImage'),
+  writeClipboardText: (text: string) => ipcRenderer.invoke('clipboard.writeText', text),
+})
+
+contextBridge.exposeInMainWorld('shellAPI', {
+  browserOpenExternal: (url: string) => ipcRenderer.invoke('browser.openExternal', url),
 })
 
 contextBridge.exposeInMainWorld('storeApi', {
@@ -14,6 +19,11 @@ contextBridge.exposeInMainWorld('storeApi', {
   storeDelete: (k) => ipcRenderer.invoke('electron.store.delete', k)
 })
 
+document.addEventListener('keydown', (event) => {
+  if (event.code === 'F12') {
+    ipcRenderer.send('toggle-devtools')
+  }
+})
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise((resolve) => {

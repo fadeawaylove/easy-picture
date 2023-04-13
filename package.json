@@ -1,6 +1,6 @@
 {
   "name": "easy-picture",
-  "version": "2.0.0",
+  "version": "0.0.1",
   "main": "dist-electron/main/index.js",
   "description": "Easy-to-use image hosting software.",
   "author": "呆瓜 <1032939141@qq.com>",
@@ -39,10 +39,12 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
+    "@types/uuid": "^9.0.1",
     "axios": "^1.3.4",
     "electron-store": "^8.1.0",
     "element-plus": "^2.3.1",
     "js-base64": "^3.7.5",
+    "mime": "^3.0.0",
     "nprogress": "^0.2.0",
     "uuid": "^9.0.0",
     "vue-router": "4"
