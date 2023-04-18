@@ -156,7 +156,7 @@ const readImageClipboard = () => {
     let size = stat.size;
     let lastModifiedDate = stat.mtime;
     let fileType = mime.getType(tempPath);
-    return { fileName, fileContent, filePath: tempPath, fileType, lastModified, size, lastModifiedDate, err: "" }
+    return { fileName, fileContent, filePath: tempPath, fileType, lastModified, size, lastModifiedDate, err: ""}
   }
   catch (err) {
     return { err }

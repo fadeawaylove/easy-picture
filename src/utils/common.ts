@@ -18,6 +18,20 @@ export function readFileAndConvertToBase64(filePath: string): Promise<string | n
     });
 }
 
+export function uint8ToBase64(filePath: string): Promise<string | null> {
+    return new Promise((resolve, reject) => {
+        (window as any).fileAPI.fsReadFile(filePath).then((content: any) => {
+            (window as any).fileAPI.uint8ToBase64(content).then((fileContent: string) => {
+                resolve(fileContent);
+            }).catch(() => {
+                resolve(null);
+            });
+        }).catch(() => {
+            resolve(null);
+        });
+    });
+}
+
 export function formatDateTime(date: Date): string {
     const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
     const formatter = new Intl.DateTimeFormat('zh-CN', options as any);

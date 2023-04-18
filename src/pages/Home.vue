@@ -1,5 +1,9 @@
 <template >
-    <div class="upload-home" @scroll="handleScroll">
+    <div class="upload-home">
+        <div>
+            <el-image-viewer v-if="payVoucherDialog" @close="closeViewer" :url-list="imagesList.map(item => item.url)"
+                :initial-index="imageViewerPosition" />
+        </div>
 
         <div class="flex mb-4 flex justify-center items-center ">
             <el-select v-model="repoID" placeholder="选择仓库" clearable filterable @change="changeRepo" size="small">
@@ -23,7 +27,9 @@
 
                 <el-table-column label="文件名">
                     <template #default="scope">
-                        <el-text class="mx-1 text-gray-700">{{ scope.row.name }}</el-text>
+                        <el-text @click="openViewer(scope.$index)"
+                            class="mx-1 text-gray-700 hover:underline cursor-pointer">{{
+                                scope.row.name }}</el-text>
                     </template>
                 </el-table-column>
 
@@ -41,9 +47,11 @@
 
                 <el-table-column label="操作">
                     <template #default="scope">
-                        <div class="flex flex-col items-center justify-center">
-                            <el-button  type="success" text class="!text-green-500" @click="handlerUrlCopy(scope.row)">复制地址</el-button>
-                            <el-button  type="info" text class=" !text-yellow-500" @click="handleOpenInBrowser(scope.row)">浏览器打开</el-button>
+                        <div class="flex flex-col items-start justify-center">
+                            <el-button type="success" text class="!text-green-500 hover:underline"
+                                @click="handlerUrlCopy(scope.row)">复制地址</el-button>
+                            <el-button type="info" text class=" !text-yellow-500 !m-0 hover:underline"
+                                @click="handleOpenInBrowser(scope.row)">浏览器打开</el-button>
                         </div>
 
                     </template>
@@ -60,11 +68,11 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { UploadFilled } from '@element-plus/icons-vue'
-import { uploadFile } from '~/api/gitlab';
+import { uploadFile as requestUploadFile } from '~/api/gitlab';
 import { getRepoList, getDefaultRepo, setDefaultRepo, getImagesFromGallary, addImageToGallary } from '~/api/localRepo';
 import { toast } from '~/utils/notify';
 import { formatDateTime, readFileAndConvertToBase64, formatFileSize, writeTextToClipboard, browserOpenExternal } from '~/utils/common';
-import { UploadFile, UploadProgressEvent, UploadProps, UploadRawFile, UploadRequestOptions, genFileId } from 'element-plus';
+import { UploadFile, UploadProgressEvent, UploadProps, UploadRawFile, UploadRequestOptions, genFileId, ElMessage } from 'element-plus';
 
 interface Image {
     url: string
@@ -82,20 +90,34 @@ const pageIndex = ref(1)
 const pageSize = ref(10)
 const imageTotalCount = ref(0)
 const imageLoadCount = ref(0)
+const payVoucherDialog = ref(false)
+const imageViewerPosition = ref(0)
+
+
 
 const handlerUrlCopy = async (image: Image) => {
     console.log(image)
     await writeTextToClipboard(image.url);
-    toast(`文件${image.name}的地址已复制到剪切板`)
+    ElMessage({
+        message: `文件【${image.name}】地址已复制到剪切板。`,
+        type: 'success',
+    })
 }
 
 const handleOpenInBrowser = async (image: Image) => {
     await browserOpenExternal(image.url)
 }
 
-const handleScroll = async () => {
 
-    console.log("more")
+const openViewer = async (index: number) => {
+    payVoucherDialog.value = true
+    imageViewerPosition.value = index
+    document.documentElement.style.overflowY = 'hidden'
+}
+
+const closeViewer = async () => {
+    payVoucherDialog.value = false
+    document.documentElement.style.overflowY = 'auto'
 }
 
 const handleExceed: UploadProps['onExceed'] = (files) => {
@@ -116,7 +138,9 @@ const beforeUpload = async (rawFile: UploadRawFile) => {
 }
 
 // 上传过程中
-const onProgress = (evt: UploadProgressEvent, uploadFile: UploadFile) => { uploadFile.percentage = evt.percent }
+const onProgress = (evt: UploadProgressEvent, uploadFile: UploadFile) => {
+    uploadFile.percentage = evt.percent
+}
 
 // 上传
 const handleUpload = async (options: UploadRequestOptions) => {
@@ -130,11 +154,11 @@ const handleUpload = async (options: UploadRequestOptions) => {
     }
     console.log(options)
     var file = options.file
-    var fileContent = await readFileAndConvertToBase64((file as any).path)
+    var fileContent = await readFileAndConvertToBase64((file as any).path || (file as any).clipPath)
     if (!fileContent) {
         return toast("文件内容为空", "warning")
     }
-    var url = await uploadFile(currentRepo.value, fileContent, file.name, undefined, onUploadProgress)
+    var url = await requestUploadFile(currentRepo.value, fileContent, file.name, undefined, onUploadProgress)
     await writeTextToClipboard(url);
     toast(`上传文件${file.name}成功，文件地址已复制到剪切板`)
 
@@ -154,11 +178,11 @@ const syncDataWhenAddOne = async (newFile: any) => {
     imageLoadCount.value += 1
 }
 
+
 const clipBoardUpload = async () => {
     // 剪切板上传
-    const { fileName, filePath, fileType, lastModified, size, lastModifiedDate, err } = await (window as any).fileAPI.readClipboardImage()
+    const { fileName, filePath, fileType, fileContent, lastModified, size, lastModifiedDate, err } = await (window as any).fileAPI.readClipboardImage()
     if (err) { return toast(err, "warning") }
-    uploadRef.value.clearFiles()
     uploadRef.value.handleStart({ name: fileName, path: filePath, size, lastModified, lastModifiedDate, type: fileType, uid: genFileId() })
     uploadRef.value.submit()
 }
