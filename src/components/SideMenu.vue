@@ -30,12 +30,7 @@ const menus = [
         name: "仓库",
         path: "/storage/list",
         icon: "House"
-    },
-    // {
-    //     name: "设置",
-    //     path: "/settings",
-    //     icon: "Setting"
-    // }
+    }
 ]
 
 const handleSelect = (e: string) => {
@@ -59,7 +54,4 @@ const handleSelect = (e: string) => {
     width: 0px;
 }
 
-/* .el-menu-item {
-    @apply !p-0;
-} */
 </style>

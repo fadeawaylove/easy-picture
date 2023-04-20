@@ -1,6 +1,7 @@
 import { app, BrowserWindow, shell, ipcMain, dialog, clipboard, globalShortcut } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
+import { autoUpdater } from "electron-updater";
 import Store from 'electron-store'
 const fs = require('fs')
 const path = require('path');
@@ -194,6 +195,10 @@ app.whenReady().then(() => {
     }
   })
 })
+
+app.on("ready", () => {
+	autoUpdater.checkForUpdatesAndNotify();
+});
 
 app.on('window-all-closed', () => {
   globalShortcut.unregister('F12')
