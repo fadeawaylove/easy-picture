@@ -2,7 +2,10 @@ import { AxiosProgressEvent } from "axios";
 import axios from "~/axios";
 
 export function checkAccessToken(projectId: string, accessToken: string) {
-    return axios.get(`https://gitlab.com/api/v4/projects/${projectId}?private_token=${accessToken}`);
+    const headers = {
+        'Private-Token': accessToken
+    };
+    return axios.get(`https://gitlab.com/api/v4/projects/${projectId}/access_requests`,{headers});
 }
 
 interface Repo {
@@ -48,10 +51,8 @@ export async function createBranch(
     ref = 'main',
 ): Promise<boolean> {
     const { projectId, accessToken, branch } = repo;
-    const branchName = branch || "ddd"
-    const branchUrl = `https://gitlab.com/api/v4/projects/${encodeURIComponent(
-        projectId,
-    )}/repository/branches`;
+    const branchName = branch || "master"
+    const branchUrl = `https://gitlab.com/api/v4/projects/${encodeURIComponent(projectId)}/repository/branches`;
     const branchData = {
         branch: branchName,
         ref,

@@ -68,7 +68,8 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { UploadFilled } from '@element-plus/icons-vue'
-import { uploadFile as requestUploadFile } from '~/api/gitlab';
+import { uploadFile as uploadFileToGitlab } from '~/api/gitlab';
+import { uploadFile as uploadFileToGithub } from '~/api/github';
 import { getRepoList, getDefaultRepo, setDefaultRepo, getImagesFromGallary, addImageToGallary } from '~/api/localRepo';
 import { toast } from '~/utils/notify';
 import { formatDateTime, readFileAndConvertToBase64, formatFileSize, writeTextToClipboard, browserOpenExternal } from '~/utils/common';
@@ -158,7 +159,12 @@ const handleUpload = async (options: UploadRequestOptions) => {
     if (!fileContent) {
         return toast("文件内容为空", "warning")
     }
-    var url = await requestUploadFile(currentRepo.value, fileContent, file.name, undefined, onUploadProgress)
+    var url = ""
+    if(currentRepo.value.type === "GitLab"){
+        url = await uploadFileToGitlab(currentRepo.value, fileContent, file.name, undefined, onUploadProgress)
+    }else if(currentRepo.value.type === "GitHub"){
+        url = await uploadFileToGithub(currentRepo.value, fileContent, file.name, undefined, onUploadProgress)
+    }
     await writeTextToClipboard(url);
     toast(`上传文件${file.name}成功，文件地址已复制到剪切板`)
 
@@ -183,6 +189,7 @@ const clipBoardUpload = async () => {
     // 剪切板上传
     const { fileName, filePath, fileType, fileContent, lastModified, size, lastModifiedDate, err } = await (window as any).fileAPI.readClipboardImage()
     if (err) { return toast(err, "warning") }
+    uploadRef.value!.clearFiles()
     uploadRef.value.handleStart({ name: fileName, path: filePath, size, lastModified, lastModifiedDate, type: fileType, uid: genFileId() })
     uploadRef.value.submit()
 }

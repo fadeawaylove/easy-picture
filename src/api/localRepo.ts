@@ -1,12 +1,14 @@
 
 interface Repo {
     name: string;
-    projectId: string;
+    projectId?: string;
+    projectName?: string;
     accessToken: string;
     branch: string;
     path: string;
     type: string;
     id: string;
+    owner?: string
 }
 
 

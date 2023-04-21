@@ -13,7 +13,7 @@
         <el-divider border-style="dashed" />
 
         <GitLab v-if="value == 'GitLab'" :repo="repo" />
-        <span v-if="value == 'GitHub'">GitHub 待完成</span>
+        <Github v-if="value == 'GitHub'" :repo="repo" />
         <span v-if="value == 'Gitee'">Gitee 待完成</span>
     </div>
 </template>
@@ -24,6 +24,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router';
 import { getRepoList, getRepoByID } from '~/api/localRepo';
 import GitLab from '~/pages/repos/GitLab.vue'
+import Github from '~/pages/repos/Github.vue'
 
 const route = useRoute()
 

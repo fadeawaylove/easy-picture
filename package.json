@@ -1,6 +1,6 @@
 {
   "name": "easy-picture",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist-electron/main/index.js",
   "description": "Easy-to-use image hosting software.",
   "author": "呆瓜 <1032939141@qq.com>",

@@ -7,8 +7,8 @@
                 </el-input>
             </el-form-item>
 
-            <el-form-item prop="projectId" label="项目ID">
-                <el-input v-model="form.projectId" placeholder="请输入项目ID" required clearable class="my-1">
+            <el-form-item prop="projectName" label="项目名">
+                <el-input v-model="form.projectName" placeholder="请输入项目名" required clearable class="my-1">
                 </el-input>
             </el-form-item>
 
@@ -19,7 +19,7 @@
             </el-form-item>
 
             <el-form-item prop="branch" label="存储分支">
-                <el-input v-model="form.branch" placeholder="请输入存储分支，不填则为master" required clearable class="my-1">
+                <el-input v-model="form.branch" placeholder="请输入存储分支，不填则为main" required clearable class="my-1">
                 </el-input>
             </el-form-item>
 
@@ -33,8 +33,9 @@
 
     </CommonForm>
     <div class="flex items-center justify-center mt-2">
-        <el-link class="flex" @click="browserOpenExternal('https://gitlab.com/-/profile/personal_access_tokens')"
-            type="info">前往生成访问令牌</el-link>
+        <el-link class="flex"
+            @click="browserOpenExternal('https://docs.github.com/zh/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#%E5%88%9B%E5%BB%BA-personal-access-token-classic')"
+            type="info">如何生成访问令牌？</el-link>
 
     </div>
 </template>
@@ -45,7 +46,7 @@ import CommonForm from '~/components/CommonForm.vue'
 import { useRouter } from 'vue-router'
 import { ref, Ref, reactive, onMounted, toRaw } from 'vue'
 import { ElForm } from "element-plus";
-import { checkAccessToken, createBranch } from '~/api/gitlab'
+import { checkAccessToken, createBranch } from '~/api/github'
 import { toast } from '~/utils/notify';
 import { browserOpenExternal } from '~/utils/common'
 import { genUUID } from '~/utils/id';
@@ -67,7 +68,8 @@ const props = defineProps({
 
 interface Form {
     name: string;
-    projectId: string;
+    projectName: string;
+    owner: string
     accessToken: string;
     branch: string;
     path: string;
@@ -77,11 +79,12 @@ interface Form {
 
 const form: Ref<Form> = ref(reactive({
     name: '',
-    projectId: '',
+    owner: '',
+    projectName: '',
     accessToken: '',
     branch: '',
     path: '',
-    type: 'GitLab',
+    type: 'GitHub',
     id: genUUID()
 }))
 
@@ -89,8 +92,8 @@ const rules = {
     name: [
         { required: true, message: '仓库名称不能为空', trigger: 'blur' },
     ],
-    projectId: [
-        { required: true, message: '项目ID不能为空', trigger: 'blur' },
+    projectName: [
+        { required: true, message: '项目名称不能为空', trigger: 'blur' },
     ],
     accessToken: [
         { required: true, message: '访问令牌不能为空', trigger: 'blur' },
@@ -119,10 +122,12 @@ const onSubmit = async () => {
     formFrameRef.value && formFrameRef.value.showLoading()
     // 请求gitlab，校验有效性然后保存
     var formValue = form.value
-    checkAccessToken(formValue.projectId, formValue.accessToken).then(async (res) => {
-        console.log(res)
-        await createBranch(toRaw(formValue))
-        await saveRepo(toRaw(formValue))
+    checkAccessToken(formValue.accessToken).then(async (res: any) => {
+        const owner = res.login as string
+        // 创建分支
+        await createBranch({ ...toRaw(formValue), owner })
+        // 保存配置
+        await saveRepo({ ...toRaw(formValue), owner })
         toast("保存成功！")
         router.push("/storage/list")
     }).catch(err => {
