@@ -65,7 +65,7 @@
     "electron-builder": "^23.6.0",
     "typescript": "^5.0.2",
     "vite": "^4.1.4",
-    "vite-plugin-electron": "^0.11.1",
+    "vite-plugin-electron": "^0.12.0",
     "vite-plugin-electron-renderer": "^0.13.12",
     "vite-plugin-windicss": "^1.8.10",
     "vue": "^3.2.47",
